@@ -8684,40 +8684,45 @@ do
 			Content = "Cola Boost, Speed Pad Boost and Player Speed overrides. Values stay active while the script is running.",
 		})
 
-		local colaBoostValue = 1.4
-		local speedPadValue = 1.3
+		-- one table = one local; keeps us under Luau's 200-register cap
+		local boost = {
+			colaBoostValue = 1.4,
+			speedPadValue  = 1.3,
+			grappleSwapped = false,
+			speedSlider    = nil,
+		}
 
-		local function monitorBoostObject(object)
+		boost.monitorBoostObject = function(object)
 			if not object or not object:IsA("NumberValue") then return end
 			if object.Name == "ColaBoost" then
-				pcall(function() object.Value = colaBoostValue end)
+				pcall(function() object.Value = boost.colaBoostValue end)
 				object:GetPropertyChangedSignal("Value"):Connect(function()
-					if object.Value ~= colaBoostValue then
-						pcall(function() object.Value = colaBoostValue end)
+					if object.Value ~= boost.colaBoostValue then
+						pcall(function() object.Value = boost.colaBoostValue end)
 					end
 				end)
 			elseif object.Name == "SpeedPad" then
-				pcall(function() object.Value = speedPadValue end)
+				pcall(function() object.Value = boost.speedPadValue end)
 				object:GetPropertyChangedSignal("Value"):Connect(function()
-					if object.Value ~= speedPadValue then
-						pcall(function() object.Value = speedPadValue end)
+					if object.Value ~= boost.speedPadValue then
+						pcall(function() object.Value = boost.speedPadValue end)
 					end
 				end)
 			end
 		end
 
-		local function checkDescendant(desc)
+		boost.checkDescendant = function(desc)
 			local parent = desc and desc.Parent
 			if parent and parent.Name == "Speed" then
-				monitorBoostObject(desc)
+				boost.monitorBoostObject(desc)
 			end
 		end
 
 		pcall(function()
 			for _, item in ipairs(Workspace:GetDescendants()) do
-				checkDescendant(item)
+				boost.checkDescendant(item)
 			end
-			Workspace.DescendantAdded:Connect(checkDescendant)
+			Workspace.DescendantAdded:Connect(boost.checkDescendant)
 		end)
 
 		tab:AddSection("Speed Changer (Boost)")
@@ -8729,11 +8734,11 @@ do
 			Callback = function(v)
 				local n = tonumber(v)
 				if not n then return end
-				colaBoostValue = n
+				boost.colaBoostValue = n
 				pcall(function()
 					for _, item in ipairs(Workspace:GetDescendants()) do
 						if item.Name == "ColaBoost" and item:IsA("NumberValue") then
-							item.Value = colaBoostValue
+							item.Value = boost.colaBoostValue
 						end
 					end
 				end)
@@ -8748,11 +8753,11 @@ do
 			Callback = function(v)
 				local n = tonumber(v)
 				if not n then return end
-				speedPadValue = n
+				boost.speedPadValue = n
 				pcall(function()
 					for _, item in ipairs(Workspace:GetDescendants()) do
 						if item.Name == "SpeedPad" and item:IsA("NumberValue") then
-							item.Value = speedPadValue
+							item.Value = boost.speedPadValue
 						end
 					end
 				end)
@@ -8764,7 +8769,7 @@ do
 
 		_G.__HXRealSpeedOverride = _G.__HXRealSpeedOverride or 1500
 
-		local function applyRealSpeed(char)
+		boost.applyRealSpeed = function(char)
 			if not char then return end
 			local hum = char:FindFirstChildOfClass("Humanoid") or char:WaitForChild("Humanoid", 5)
 			if not hum then return end
@@ -8798,10 +8803,10 @@ do
 		end
 
 		if LocalPlayer.Character then
-			task.spawn(applyRealSpeed, LocalPlayer.Character)
+			task.spawn(boost.applyRealSpeed, LocalPlayer.Character)
 		end
 		LocalPlayer.CharacterAdded:Connect(function(char)
-			task.spawn(applyRealSpeed, char)
+			task.spawn(boost.applyRealSpeed, char)
 		end)
 
 		task.spawn(function()
@@ -8815,8 +8820,7 @@ do
 			end
 		end)
 
-		local speedSlider
-		speedSlider = tab:AddSlider("OldFolder_PlayerSpeed", {
+		boost.speedSlider = tab:AddSlider("OldFolder_PlayerSpeed", {
 			Title = "Player Speed",
 			Default = 1500,
 			Min = 100,
@@ -8842,7 +8846,7 @@ do
 				local hum = char and char:FindFirstChildOfClass("Humanoid")
 				if hum then pcall(function() hum:SetAttribute("RealSpeed", n) end) end
 				pcall(function()
-					if speedSlider and speedSlider.SetValue then speedSlider:SetValue(n) end
+					if boost.speedSlider and boost.speedSlider.SetValue then boost.speedSlider:SetValue(n) end
 				end)
 				Fluent:Notify({ Title = "Player Speed", Content = "Set to " .. tostring(n), Duration = 2 })
 			end,
@@ -8850,9 +8854,8 @@ do
 
 		-- GrappleHook <-> GrappleShot name swap
 		tab:AddSection("Grapple Swap")
-		local grappleSwapped = false
 
-		local function setGrappleSwap(on)
+		boost.setGrappleSwap = function(on)
 			local ok, err = pcall(function()
 				local ws = game:GetService("ReplicatedStorage"):FindFirstChild("WeaponStorage")
 				if not ws then error("WeaponStorage not found") end
@@ -8861,22 +8864,20 @@ do
 					return ws:FindFirstChild(name)
 				end
 
-				if on and not grappleSwapped then
+				if on and not boost.grappleSwapped then
 					local h = get("GrappleHook")
 					local s = get("GrappleShot")
 					if not h or not s then error("GrappleHook/GrappleShot missing") end
-					-- swap names via temp (same as provided snippet)
 					h.Name, s.Name = "Temp", "GrappleHook"
 					ws.Temp.Name = "GrappleShot"
-					grappleSwapped = true
-				elseif (not on) and grappleSwapped then
-					-- reverse: current GrappleHook is original Shot, GrappleShot is original Hook
-					local h = get("GrappleHook") -- was Shot
-					local s = get("GrappleShot") -- was Hook
+					boost.grappleSwapped = true
+				elseif (not on) and boost.grappleSwapped then
+					local h = get("GrappleHook")
+					local s = get("GrappleShot")
 					if not h or not s then error("swapped weapons missing") end
 					h.Name, s.Name = "Temp", "GrappleShot"
 					ws.Temp.Name = "GrappleHook"
-					grappleSwapped = false
+					boost.grappleSwapped = false
 				end
 			end)
 			return ok, err
@@ -8887,7 +8888,7 @@ do
 			Description = "Swaps GrappleHook and GrappleShot in WeaponStorage. Toggle off to restore.",
 			Default = false,
 			Callback = function(v)
-				local ok, err = setGrappleSwap(v and true or false)
+				local ok, err = boost.setGrappleSwap(v and true or false)
 				if ok then
 					Fluent:Notify({
 						Title = "Grapple Swap",
