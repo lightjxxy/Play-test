@@ -16,7 +16,7 @@ local ANIM_RIGHT = "rbxassetid://18688628477"
 local ANIM_NAME  = "WallrunAnim"
 
 -- ── tuning ────────────────────────────────────────────────────────────────────
-local CLIMB_FORCE       = 18
+local CLIMB_FORCE       = 48
 local LAUNCH_H          = 42     -- was 28 — higher vertical arc
 local LAUNCH_SIDE       = 2.6    -- was 1.8 — stronger sideways kick
 local LAUNCH_FWD        = 0.7
