@@ -1,0 +1,418 @@
+local plrs = game:GetService("Players")
+local rs = game:GetService("ReplicatedStorage")
+local runs = game:GetService("RunService")
+local uis = game:GetService("UserInputService")
+
+local lp = plrs.LocalPlayer
+local remote = rs:WaitForChild("VipEvents"):WaitForChild("SummonMeme")
+local vals = rs:WaitForChild("values")
+
+local types = {"Nerd", "Gi-hun", "Peanut", "TrollFace", "maxwell", "HN", "Freddy"}
+local chunk = 100
+local delay = 0.25
+local limit = 5000
+
+local accent = Color3.fromRGB(90, 130, 255)
+local bgcol = Color3.fromRGB(30, 30, 35)
+local topcol = Color3.fromRGB(20, 20, 25)
+local elementcol = Color3.fromRGB(40, 40, 45)
+
+local gui = Instance.new("ScreenGui")
+gui.Name = "serv lagger"
+gui.ResetOnSpawn = false
+gui.IgnoreGuiInset = true
+gui.DisplayOrder = 999999
+gui.Parent = lp:WaitForChild("PlayerGui")
+
+local bg = Instance.new("Frame")
+bg.Size = UDim2.new(0, 280, 0, 250)
+bg.Position = UDim2.new(1, -300, 0, 20)
+bg.BackgroundColor3 = bgcol
+bg.BorderSizePixel = 0
+bg.ClipsDescendants = true
+bg.Active = true
+bg.Parent = gui
+
+local bgcorner = Instance.new("UICorner")
+bgcorner.CornerRadius = UDim.new(0, 6)
+bgcorner.Parent = bg
+
+local bgstroke = Instance.new("UIStroke")
+bgstroke.Color = Color3.fromRGB(50, 50, 55)
+bgstroke.Parent = bg
+
+local topbar = Instance.new("Frame")
+topbar.Size = UDim2.new(1, 0, 0, 28)
+topbar.BackgroundColor3 = topcol
+topbar.BorderSizePixel = 0
+topbar.Parent = bg
+
+local title = Instance.new("TextLabel")
+title.Size = UDim2.new(1, -30, 1, 0)
+title.Position = UDim2.new(0, 12, 0, 0)
+title.BackgroundTransparency = 1
+title.FontFace = Font.new("rbxassetid://12187365977", Enum.FontWeight.Medium)
+title.Text = "server lagger"
+title.TextSize = 12
+title.TextColor3 = Color3.fromRGB(240, 240, 240)
+title.TextXAlignment = Enum.TextXAlignment.Left
+title.Parent = topbar
+
+local xbtn = Instance.new("TextButton")
+xbtn.Size = UDim2.new(0, 28, 1, 0)
+xbtn.Position = UDim2.new(1, -28, 0, 0)
+xbtn.BackgroundTransparency = 1
+xbtn.FontFace = Font.new("rbxassetid://12187365977", Enum.FontWeight.Bold)
+xbtn.Text = "X"
+xbtn.TextSize = 11
+xbtn.TextColor3 = Color3.fromRGB(180, 180, 180)
+xbtn.Parent = topbar
+
+local amt = Instance.new("TextBox")
+amt.Size = UDim2.new(0, 124, 0, 26)
+amt.Position = UDim2.new(0, 12, 0, 40)
+amt.BackgroundColor3 = elementcol
+amt.BorderSizePixel = 0
+amt.FontFace = Font.new("rbxassetid://12187365977")
+amt.Text = "600"
+amt.PlaceholderText = "amount"
+amt.TextSize = 11
+amt.TextColor3 = Color3.fromRGB(255, 255, 255)
+amt.ClearTextOnFocus = false
+amt.Parent = bg
+
+local amtcorner = Instance.new("UICorner")
+amtcorner.CornerRadius = UDim.new(0, 4)
+amtcorner.Parent = amt
+
+local exe = Instance.new("TextButton")
+exe.Size = UDim2.new(0, 124, 0, 26)
+exe.Position = UDim2.new(1, -136, 0, 40)
+exe.BackgroundColor3 = accent
+exe.BorderSizePixel = 0
+exe.FontFace = Font.new("rbxassetid://12187365977", Enum.FontWeight.Medium)
+exe.Text = "Execute"
+exe.TextSize = 11
+exe.TextColor3 = Color3.fromRGB(255, 255, 255)
+exe.Parent = bg
+
+local execorner = Instance.new("UICorner")
+execorner.CornerRadius = UDim.new(0, 4)
+execorner.Parent = exe
+
+local slots = {unpack(types)}
+table.insert(slots, "Mix")
+table.insert(slots, "Rand")
+
+local btns = {}
+for i, n in ipairs(slots) do
+    local col = (i - 1) % 3
+    local row = math.floor((i - 1) / 3)
+    local b = Instance.new("TextButton")
+    b.Size = UDim2.new(0, 80, 0, 24)
+    b.Position = UDim2.new(0, 12 + col * 88, 0, 78 + row * 28)
+    b.BackgroundColor3 = elementcol
+    b.BorderSizePixel = 0
+    b.FontFace = Font.new("rbxassetid://12187365977")
+    b.Text = n
+    b.TextSize = 11
+    b.TextColor3 = Color3.fromRGB(200, 200, 200)
+    b.Parent = bg
+    
+    local cnr = Instance.new("UICorner")
+    cnr.CornerRadius = UDim.new(0, 4)
+    cnr.Parent = b
+    
+    local strk = Instance.new("UIStroke")
+    strk.Color = Color3.fromRGB(60, 60, 65)
+    strk.Parent = b
+    
+    btns[n] = b
+end
+
+local holdbtn = Instance.new("TextButton")
+holdbtn.Size = UDim2.new(0, 80, 0, 24)
+holdbtn.Position = UDim2.new(0, 12, 0, 172)
+holdbtn.BackgroundColor3 = elementcol
+holdbtn.BorderSizePixel = 0
+holdbtn.FontFace = Font.new("rbxassetid://12187365977", Enum.FontWeight.Medium)
+holdbtn.Text = "Hold: Off"
+holdbtn.TextSize = 10
+holdbtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+holdbtn.Parent = bg
+
+local holdcnr = Instance.new("UICorner")
+holdcnr.CornerRadius = UDim.new(0, 4)
+holdcnr.Parent = holdbtn
+
+local holdstroke = Instance.new("UIStroke")
+holdstroke.Color = Color3.fromRGB(60, 60, 65)
+holdstroke.Parent = holdbtn
+
+local autobtn = Instance.new("TextButton")
+autobtn.Size = UDim2.new(0, 80, 0, 24)
+autobtn.Position = UDim2.new(0, 100, 0, 172)
+autobtn.BackgroundColor3 = elementcol
+autobtn.BorderSizePixel = 0
+autobtn.FontFace = Font.new("rbxassetid://12187365977", Enum.FontWeight.Medium)
+autobtn.Text = "Auto: Off"
+autobtn.TextSize = 10
+autobtn.TextColor3 = Color3.fromRGB(200, 200, 200)
+autobtn.Parent = bg
+
+local autocnr = Instance.new("UICorner")
+autocnr.CornerRadius = UDim.new(0, 4)
+autocnr.Parent = autobtn
+
+local autostroke = Instance.new("UIStroke")
+autostroke.Color = Color3.fromRGB(60, 60, 65)
+autostroke.Parent = autobtn
+
+local stopbtn = Instance.new("TextButton")
+stopbtn.Size = UDim2.new(0, 80, 0, 24)
+stopbtn.Position = UDim2.new(0, 188, 0, 172)
+stopbtn.BackgroundColor3 = Color3.fromRGB(180, 70, 70)
+stopbtn.BorderSizePixel = 0
+stopbtn.FontFace = Font.new("rbxassetid://12187365977", Enum.FontWeight.Medium)
+stopbtn.Text = "Halt"
+stopbtn.TextSize = 10
+stopbtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+stopbtn.Parent = bg
+
+local stopcnr = Instance.new("UICorner")
+stopcnr.CornerRadius = UDim.new(0, 4)
+stopcnr.Parent = stopbtn
+
+local stat = Instance.new("TextLabel")
+stat.Size = UDim2.new(1, -24, 0, 20)
+stat.Position = UDim2.new(0, 12, 0, 202)
+stat.BackgroundTransparency = 1
+stat.FontFace = Font.new("rbxassetid://12187365977")
+stat.Text = "Status: Idle"
+stat.TextSize = 11
+stat.TextColor3 = Color3.fromRGB(160, 160, 170)
+stat.TextXAlignment = Enum.TextXAlignment.Left
+stat.Parent = bg
+
+local hint = Instance.new("TextLabel")
+hint.Size = UDim2.new(1, -24, 0, 18)
+hint.Position = UDim2.new(0, 12, 0, 224)
+hint.BackgroundTransparency = 1
+hint.FontFace = Font.new("rbxassetid://12187365977")
+hint.Text = "RightShift to toggle"
+hint.TextSize = 10
+hint.TextColor3 = Color3.fromRGB(120, 120, 130)
+hint.TextXAlignment = Enum.TextXAlignment.Left
+hint.Parent = bg
+
+local sel = "Nerd"
+local ishold = false
+local tgt = 0
+local isauto = false
+local firing = false
+local wasact = false
+
+local function getcount()
+    local f = workspace:FindFirstChild("Nextbots")
+    return f and #f:GetChildren() or 0
+end
+
+local function gettally()
+    local t = {}
+    local f = workspace:FindFirstChild("Nextbots")
+    if f then
+        for _, m in ipairs(f:GetChildren()) do
+            t[m.Name] = (t[m.Name] or 0) + 1
+        end
+    end
+    return t
+end
+
+local function isact()
+    local r = vals:FindFirstChild("roundActive")
+    return r and r.Value == true
+end
+
+local function getstat()
+    local s = vals:FindFirstChild("status")
+    return s and s.Value or "?"
+end
+
+local function gettime()
+    local t = vals:FindFirstChild("timer")
+    return t and t.Value or "--"
+end
+
+local function getnum()
+    local n = tonumber(amt.Text)
+    if not n then return 0 end
+    n = math.floor(n)
+    if n < 1 then return 0 end
+    if n > limit then n = limit end
+    return n
+end
+
+local function updscl()
+    for n, b in pairs(btns) do
+        if n == sel then
+            b.TextColor3 = Color3.fromRGB(255, 255, 255)
+            b.UIStroke.Color = accent
+        else
+            b.TextColor3 = Color3.fromRGB(200, 200, 200)
+            b.UIStroke.Color = Color3.fromRGB(60, 60, 65)
+        end
+    end
+end
+
+local function getpick(i, mode)
+    if mode == "Mix" then
+        return types[((i - 1) % #types) + 1]
+    elseif mode == "Rand" then
+        return types[math.random(1, #types)]
+    end
+    return mode
+end
+
+local function dosummon(n, mode)
+    if firing then return false end
+    if not isact() or getcount() == 0 then
+        stat.Text = "blocked: round is dead"
+        return false
+    end
+    
+    firing = true
+    task.spawn(function()
+        local s = 0
+        while s < n do
+            local c = math.min(chunk, n - s)
+            for i = 1, c do
+                local p = getpick(s + i, mode)
+                pcall(function() remote:FireServer(p) end)
+            end
+            s = s + c
+            if s < n then runs.Heartbeat:Wait() end
+        end
+        firing = false
+    end)
+    return true
+end
+
+exe.MouseButton1Click:Connect(function()
+    local n = getnum()
+    if n > 0 then dosummon(n, sel) end
+end)
+
+for n, b in pairs(btns) do
+    b.MouseButton1Click:Connect(function()
+        sel = n
+        updscl()
+        if ishold then
+            tgt = getnum()
+            holdbtn.Text = "Hold: " .. tgt
+        end
+    end)
+end
+
+holdbtn.MouseButton1Click:Connect(function()
+    ishold = not ishold
+    tgt = ishold and getnum() or 0
+    if ishold and tgt == 0 then ishold = false end
+    holdbtn.Text = ishold and ("Hold: " .. tgt) or "Hold: Off"
+    holdstroke.Color = ishold and accent or Color3.fromRGB(60, 60, 65)
+end)
+
+autobtn.MouseButton1Click:Connect(function()
+    isauto = not isauto
+    autobtn.Text = isauto and "Auto: On" or "Auto: Off"
+    autostroke.Color = isauto and accent or Color3.fromRGB(60, 60, 65)
+end)
+
+stopbtn.MouseButton1Click:Connect(function()
+    ishold = false
+    tgt = 0
+    isauto = false
+    holdbtn.Text = "Hold: Off"
+    autobtn.Text = "Auto: Off"
+    holdstroke.Color = Color3.fromRGB(60, 60, 65)
+    autostroke.Color = Color3.fromRGB(60, 60, 65)
+    stat.Text = "halted"
+end)
+
+xbtn.MouseButton1Click:Connect(function()
+    gui.Enabled = false
+end)
+
+uis.InputBegan:Connect(function(inp, typ)
+    if typ then return end
+    if inp.KeyCode == Enum.KeyCode.RightShift then
+        gui.Enabled = not gui.Enabled
+    end
+end)
+
+task.spawn(function()
+    while task.wait(delay) do
+        local act = isact()
+        
+        if isauto and act and not wasact then
+            dosummon(getnum(), sel)
+        end
+        wasact = act
+        
+        if ishold and tgt > 0 and not firing and act then
+            local req = math.min(chunk, tgt - getcount())
+            if req > 0 then
+                for i = 1, req do
+                    local p = getpick(i, sel)
+                    pcall(function() remote:FireServer(p) end)
+                end
+            end
+        end
+    end
+end)
+
+task.spawn(function()
+    while task.wait(0.3) do
+        local t = gettally()
+        local c = getcount()
+        for n, b in pairs(btns) do
+            local num = t[n]
+            b.Text = n .. (num and " (" .. num .. ")" or "")
+        end
+        
+        local act = isact()
+        if act then
+            stat.Text = "Live | Time: " .. gettime() .. " | Count: " .. c .. " | Sel: " .. sel
+        else
+            stat.Text = "Idle | Status: " .. getstat() .. " | Count: " .. c .. " | Sel: " .. sel
+        end
+    end
+end)
+
+local drag, dragin, start, pos
+topbar.InputBegan:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseButton1 or inp.UserInputType == Enum.UserInputType.Touch then
+        drag = true
+        start = inp.Position
+        pos = bg.Position
+        inp.Changed:Connect(function()
+            if inp.UserInputState == Enum.UserInputState.End then
+                drag = false
+            end
+        end)
+    end
+end)
+
+topbar.InputChanged:Connect(function(inp)
+    if inp.UserInputType == Enum.UserInputType.MouseMovement or inp.UserInputType == Enum.UserInputType.Touch then
+        dragin = inp
+    end
+end)
+
+uis.InputChanged:Connect(function(inp)
+    if drag and inp == dragin then
+        local del = inp.Position - start
+        bg.Position = UDim2.new(pos.X.Scale, pos.X.Offset + del.X, pos.Y.Scale, pos.Y.Offset + del.Y)
+    end
+end)
+
+updscl()
